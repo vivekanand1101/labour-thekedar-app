@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { TextInput, Button, Text, SegmentedButtons, Card } from 'react-native-paper';
+import { TextInput, Button, Text, SegmentedButtons, Card, IconButton } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { getLabourById, addPayment } from '../../../src/db/database';
-import { theme, formatCurrency, getTodayDate } from '../../../src/utils/theme';
+import { theme, formatCurrency, getTodayDate, formatDate } from '../../../src/utils/theme';
 import type { LabourWithStats } from '../../../src/types';
 
 export default function AddPaymentScreen() {
@@ -12,6 +12,7 @@ export default function AddPaymentScreen() {
 
   const [labour, setLabour] = useState<LabourWithStats | null>(null);
   const [amount, setAmount] = useState('');
+  const [date, setDate] = useState(getTodayDate());
   const [type, setType] = useState<'advance' | 'settlement'>('settlement');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
@@ -29,6 +30,12 @@ export default function AddPaymentScreen() {
     }
   };
 
+  const changeDate = (days: number) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    setDate(d.toISOString().split('T')[0]);
+  };
+
   const handleAdd = async () => {
     const amountNum = parseFloat(amount);
     if (!amountNum || amountNum <= 0) {
@@ -40,7 +47,7 @@ export default function AddPaymentScreen() {
     setError('');
 
     try {
-      await addPayment(labId, amountNum, getTodayDate(), type, notes.trim() || undefined);
+      await addPayment(labId, amountNum, date, type, notes.trim() || undefined);
       router.back();
     } catch (e) {
       setError('Failed to add payment. Please try again.');
@@ -90,6 +97,21 @@ export default function AddPaymentScreen() {
             </View>
           </Card.Content>
         </Card>
+
+        <Text variant="labelLarge" style={styles.sectionLabel}>
+          Date
+        </Text>
+        <View style={styles.dateSelector}>
+          <IconButton icon="chevron-left" onPress={() => changeDate(-1)} />
+          <Text variant="titleMedium" style={styles.dateText}>
+            {formatDate(date)}
+          </Text>
+          <IconButton
+            icon="chevron-right"
+            onPress={() => changeDate(1)}
+            disabled={date >= getTodayDate()}
+          />
+        </View>
 
         <Text variant="labelLarge" style={styles.sectionLabel}>
           Payment Type
@@ -196,6 +218,19 @@ const styles = StyleSheet.create({
   sectionLabel: {
     marginBottom: 8,
     color: '#666',
+  },
+  dateSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 4,
+  },
+  dateText: {
+    minWidth: 120,
+    textAlign: 'center',
   },
   typeButtons: {
     marginBottom: 24,

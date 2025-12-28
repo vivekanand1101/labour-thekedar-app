@@ -38,7 +38,15 @@ export default function LabourDetailScreen() {
       ...attendance.map((a) => ({ type: 'attendance' as const, data: a, date: a.date })),
       ...payments.map((p) => ({ type: 'payment' as const, data: p, date: p.date })),
     ];
-    return allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return allEvents.sort((a, b) => {
+      // Sort by date descending first
+      const dateCompare = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (dateCompare !== 0) return dateCompare;
+      // For same date, show attendance before payment
+      if (a.type === 'attendance' && b.type === 'payment') return -1;
+      if (a.type === 'payment' && b.type === 'attendance') return 1;
+      return 0;
+    });
   }, [attendance, payments]);
 
   const loadData = async () => {
