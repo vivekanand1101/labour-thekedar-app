@@ -48,6 +48,7 @@ export default function AddPaymentScreen() {
       await addPayment(labId, amountNum, date, 'payment', notes.trim() || undefined);
       router.back();
     } catch (e) {
+      console.error('Payment error:', e);
       setError(t('paymentFailed'));
     }
 
