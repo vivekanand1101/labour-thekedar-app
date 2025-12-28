@@ -1,7 +1,10 @@
 import { Stack } from 'expo-router';
 import { theme } from '../../src/utils/theme';
+import { useI18n } from '../../src/utils/i18n';
 
 export default function MainLayout() {
+  const { t } = useI18n();
+
   return (
     <Stack
       screenOptions={{
@@ -9,39 +12,40 @@ export default function MainLayout() {
         headerTintColor: '#FFFFFF',
         headerTitleStyle: { fontWeight: '600' },
         contentStyle: { backgroundColor: theme.colors.background },
+        headerBackTitle: '',
       }}
     >
       <Stack.Screen
         name="index"
-        options={{ title: 'My Projects' }}
+        options={{ title: t('myProjects') }}
       />
       <Stack.Screen
         name="project/create"
-        options={{ title: 'New Project', presentation: 'modal' }}
+        options={{ title: t('newProject') }}
       />
       <Stack.Screen
         name="project/[id]"
-        options={{ title: 'Project' }}
+        options={{ title: '' }}
       />
       <Stack.Screen
         name="labour/add"
-        options={{ title: 'Add Labour', presentation: 'modal' }}
+        options={{ title: t('addLabour') }}
       />
       <Stack.Screen
         name="labour/[id]"
-        options={{ title: 'Labour Details' }}
+        options={{ title: '' }}
       />
       <Stack.Screen
         name="attendance/mark"
-        options={{ title: 'Mark Attendance', presentation: 'modal' }}
+        options={{ title: t('markAttendance') }}
       />
       <Stack.Screen
         name="attendance/add"
-        options={{ title: 'Add Attendance', presentation: 'modal' }}
+        options={{ title: t('addAttendance') }}
       />
       <Stack.Screen
         name="payment/add"
-        options={{ title: 'Add Payment', presentation: 'modal' }}
+        options={{ title: t('addPayment') }}
       />
     </Stack>
   );
