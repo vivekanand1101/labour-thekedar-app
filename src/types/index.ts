@@ -36,7 +36,7 @@ export interface Payment {
   labourId: number;
   amount: number;
   date: string;
-  type: 'advance' | 'settlement';
+  type: string;
   notes: string | null;
 }
 

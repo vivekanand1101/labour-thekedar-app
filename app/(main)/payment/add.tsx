@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { TextInput, Button, Text, SegmentedButtons, Card, IconButton } from 'react-native-paper';
+import { TextInput, Button, Text, Card, IconButton } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { getLabourById, addPayment } from '../../../src/db/database';
 import { theme, formatCurrency, getTodayDate, formatDate } from '../../../src/utils/theme';
@@ -13,7 +13,6 @@ export default function AddPaymentScreen() {
   const [labour, setLabour] = useState<LabourWithStats | null>(null);
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(getTodayDate());
-  const [type, setType] = useState<'advance' | 'settlement'>('settlement');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +46,7 @@ export default function AddPaymentScreen() {
     setError('');
 
     try {
-      await addPayment(labId, amountNum, date, type, notes.trim() || undefined);
+      await addPayment(labId, amountNum, date, 'payment', notes.trim() || undefined);
       router.back();
     } catch (e) {
       setError('Failed to add payment. Please try again.');
@@ -112,19 +111,6 @@ export default function AddPaymentScreen() {
             disabled={date >= getTodayDate()}
           />
         </View>
-
-        <Text variant="labelLarge" style={styles.sectionLabel}>
-          Payment Type
-        </Text>
-        <SegmentedButtons
-          value={type}
-          onValueChange={(value) => setType(value as 'advance' | 'settlement')}
-          buttons={[
-            { value: 'advance', label: 'Advance', icon: 'cash-fast' },
-            { value: 'settlement', label: 'Settlement', icon: 'cash-check' },
-          ]}
-          style={styles.typeButtons}
-        />
 
         <Text variant="labelLarge" style={styles.sectionLabel}>
           Amount
@@ -231,9 +217,6 @@ const styles = StyleSheet.create({
   dateText: {
     minWidth: 120,
     textAlign: 'center',
-  },
-  typeButtons: {
-    marginBottom: 24,
   },
   amountRow: {
     flexDirection: 'row',

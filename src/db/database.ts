@@ -57,7 +57,7 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase): Promise<void
       labourId INTEGER NOT NULL,
       amount REAL NOT NULL,
       date TEXT NOT NULL,
-      type TEXT NOT NULL CHECK(type IN ('advance', 'settlement')),
+      type TEXT NOT NULL DEFAULT 'payment',
       notes TEXT,
       FOREIGN KEY (labourId) REFERENCES labours(id) ON DELETE CASCADE
     );

@@ -255,12 +255,8 @@ export default function LabourDetailScreen() {
                       </View>
                       <View style={styles.recordInfo}>
                         <Text variant="titleMedium">{formatDate(item.date)}</Text>
-                        <Chip
-                          mode="flat"
-                          compact
-                          style={item.type === 'advance' ? styles.advanceChip : styles.settlementChip}
-                        >
-                          {item.type === 'advance' ? 'Advance' : 'Settlement'}
+                        <Chip mode="flat" compact style={styles.paymentChip}>
+                          Payment
                         </Chip>
                       </View>
                       <Text variant="titleMedium" style={styles.paymentAmount}>
@@ -496,10 +492,7 @@ const styles = StyleSheet.create({
   halfChip: {
     backgroundColor: '#FFF3E0',
   },
-  advanceChip: {
-    backgroundColor: '#FFF3E0',
-  },
-  settlementChip: {
+  paymentChip: {
     backgroundColor: '#E8F5E9',
   },
   dialogInput: {
