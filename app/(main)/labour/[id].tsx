@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { Text, Card, Button, Chip, Divider, Portal, Dialog, TextInput, IconButton, SegmentedButtons } from 'react-native-paper';
+import { Text, Card, Button, Chip, Divider, Portal, Dialog, TextInput, IconButton } from 'react-native-paper';
 import { router, useLocalSearchParams, useFocusEffect, Stack } from 'expo-router';
 import {
   getLabourById,
@@ -14,6 +14,10 @@ import {
 import { theme, formatCurrency, formatDate } from '../../../src/utils/theme';
 import type { LabourWithStats, Attendance, Payment } from '../../../src/types';
 
+type Event =
+  | { type: 'attendance'; data: Attendance; date: string }
+  | { type: 'payment'; data: Payment; date: string };
+
 export default function LabourDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const labourId = parseInt(id || '0', 10);
@@ -22,13 +26,20 @@ export default function LabourDetailScreen() {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('attendance');
 
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editWage, setEditWage] = useState('');
+
+  const events = useMemo<Event[]>(() => {
+    const allEvents: Event[] = [
+      ...attendance.map((a) => ({ type: 'attendance' as const, data: a, date: a.date })),
+      ...payments.map((p) => ({ type: 'payment' as const, data: p, date: p.date })),
+    ];
+    return allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [attendance, payments]);
 
   const loadData = async () => {
     const [labourData, attendanceData, paymentsData] = await Promise.all([
@@ -164,90 +175,101 @@ export default function LabourDetailScreen() {
           </Card.Content>
         </Card>
 
-        <Button
-          mode="contained"
-          icon="cash-plus"
-          onPress={() => router.push(`/(main)/payment/add?labourId=${labourId}`)}
-          style={styles.payButton}
-        >
-          Add Payment
-        </Button>
+        <View style={styles.buttonRow}>
+          <Button
+            mode="contained"
+            icon="calendar-plus"
+            onPress={() => router.push(`/(main)/attendance/add?labourId=${labourId}`)}
+            style={styles.actionButton}
+            buttonColor={theme.colors.primary}
+          >
+            Add Attendance
+          </Button>
+          <Button
+            mode="contained"
+            icon="cash-plus"
+            onPress={() => router.push(`/(main)/payment/add?labourId=${labourId}`)}
+            style={styles.actionButton}
+            buttonColor={theme.colors.tertiary}
+          >
+            Add Payment
+          </Button>
+        </View>
 
-        <SegmentedButtons
-          value={activeTab}
-          onValueChange={setActiveTab}
-          buttons={[
-            { value: 'attendance', label: `Attendance (${attendance.length})` },
-            { value: 'payments', label: `Payments (${payments.length})` },
-          ]}
-          style={styles.tabs}
-        />
+        <View style={styles.eventsHeader}>
+          <Text variant="titleMedium" style={styles.eventsTitle}>Events</Text>
+          <Text variant="bodySmall" style={styles.eventsCount}>
+            {events.length} records
+          </Text>
+        </View>
 
-        {activeTab === 'attendance' && (
-          <View style={styles.section}>
-            {attendance.length === 0 ? (
-              <Text style={styles.emptyText}>No attendance records yet</Text>
-            ) : (
-              attendance.map((item) => (
-                <Card key={item.id} style={styles.recordCard}>
-                  <Card.Content style={styles.recordContent}>
-                    <View style={styles.recordInfo}>
-                      <Text variant="titleMedium">{formatDate(item.date)}</Text>
-                      <Chip
-                        mode="flat"
-                        compact
-                        style={item.workType === 'full' ? styles.fullChip : styles.halfChip}
-                      >
-                        {item.workType === 'full' ? 'Full Day' : 'Half Day'}
-                      </Chip>
-                    </View>
-                    <Text variant="bodyMedium" style={styles.amount}>
-                      {formatCurrency(item.workType === 'full' ? labour.dailyWage : labour.dailyWage / 2)}
-                    </Text>
-                    <IconButton
-                      icon="close"
-                      size={18}
-                      onPress={() => handleRemoveAttendance(item.date)}
-                    />
-                  </Card.Content>
-                </Card>
-              ))
-            )}
-          </View>
-        )}
-
-        {activeTab === 'payments' && (
-          <View style={styles.section}>
-            {payments.length === 0 ? (
-              <Text style={styles.emptyText}>No payments yet</Text>
-            ) : (
-              payments.map((item) => (
-                <Card key={item.id} style={styles.recordCard}>
-                  <Card.Content style={styles.recordContent}>
-                    <View style={styles.recordInfo}>
-                      <Text variant="titleMedium">{formatDate(item.date)}</Text>
-                      <Chip
-                        mode="flat"
-                        compact
-                        style={item.type === 'advance' ? styles.advanceChip : styles.settlementChip}
-                      >
-                        {item.type === 'advance' ? 'Advance' : 'Settlement'}
-                      </Chip>
-                    </View>
-                    <Text variant="titleMedium" style={styles.paymentAmount}>
-                      {formatCurrency(item.amount)}
-                    </Text>
-                    <IconButton
-                      icon="close"
-                      size={18}
-                      onPress={() => handleDeletePayment(item.id)}
-                    />
-                  </Card.Content>
-                </Card>
-              ))
-            )}
-          </View>
-        )}
+        <View style={styles.section}>
+          {events.length === 0 ? (
+            <Text style={styles.emptyText}>No events yet</Text>
+          ) : (
+            events.map((event) => {
+              if (event.type === 'attendance') {
+                const item = event.data;
+                return (
+                  <Card key={`att-${item.id}`} style={[styles.recordCard, styles.attendanceCard]}>
+                    <Card.Content style={styles.recordContent}>
+                      <View style={styles.eventIndicator}>
+                        <View style={[styles.eventDot, styles.attendanceDot]} />
+                      </View>
+                      <View style={styles.recordInfo}>
+                        <Text variant="titleMedium">{formatDate(item.date)}</Text>
+                        <Chip
+                          mode="flat"
+                          compact
+                          style={item.workType === 'full' ? styles.fullChip : styles.halfChip}
+                        >
+                          {item.workType === 'full' ? 'Full Day' : 'Half Day'}
+                        </Chip>
+                      </View>
+                      <Text variant="bodyMedium" style={styles.attendanceAmount}>
+                        +{formatCurrency(item.workType === 'full' ? labour.dailyWage : labour.dailyWage / 2)}
+                      </Text>
+                      <IconButton
+                        icon="close"
+                        size={18}
+                        onPress={() => handleRemoveAttendance(item.date)}
+                      />
+                    </Card.Content>
+                  </Card>
+                );
+              } else {
+                const item = event.data;
+                return (
+                  <Card key={`pay-${item.id}`} style={[styles.recordCard, styles.paymentCard]}>
+                    <Card.Content style={styles.recordContent}>
+                      <View style={styles.eventIndicator}>
+                        <View style={[styles.eventDot, styles.paymentDot]} />
+                      </View>
+                      <View style={styles.recordInfo}>
+                        <Text variant="titleMedium">{formatDate(item.date)}</Text>
+                        <Chip
+                          mode="flat"
+                          compact
+                          style={item.type === 'advance' ? styles.advanceChip : styles.settlementChip}
+                        >
+                          {item.type === 'advance' ? 'Advance' : 'Settlement'}
+                        </Chip>
+                      </View>
+                      <Text variant="titleMedium" style={styles.paymentAmount}>
+                        -{formatCurrency(item.amount)}
+                      </Text>
+                      <IconButton
+                        icon="close"
+                        size={18}
+                        onPress={() => handleDeletePayment(item.id)}
+                      />
+                    </Card.Content>
+                  </Card>
+                );
+              }
+            })
+          )}
+        </View>
       </ScrollView>
 
       <Portal>
@@ -383,13 +405,27 @@ const styles = StyleSheet.create({
   clearedText: {
     color: theme.colors.tertiary,
   },
-  payButton: {
-    marginHorizontal: 16,
+  buttonRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 12,
     marginBottom: 16,
   },
-  tabs: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+  actionButton: {
+    flex: 1,
+  },
+  eventsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  eventsTitle: {
+    fontWeight: '600',
+  },
+  eventsCount: {
+    color: '#999',
   },
   section: {
     paddingHorizontal: 16,
@@ -404,9 +440,31 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: '#FFFFFF',
   },
+  attendanceCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.primary,
+  },
+  paymentCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.tertiary,
+  },
   recordContent: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  eventIndicator: {
+    marginRight: 12,
+  },
+  eventDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  attendanceDot: {
+    backgroundColor: theme.colors.primary,
+  },
+  paymentDot: {
+    backgroundColor: theme.colors.tertiary,
   },
   recordInfo: {
     flex: 1,
@@ -414,8 +472,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  amount: {
-    color: '#666',
+  attendanceAmount: {
+    color: theme.colors.primary,
+    fontWeight: '600',
     marginRight: 8,
   },
   paymentAmount: {

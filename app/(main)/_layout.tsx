@@ -36,6 +36,10 @@ export default function MainLayout() {
         options={{ title: 'Mark Attendance', presentation: 'modal' }}
       />
       <Stack.Screen
+        name="attendance/add"
+        options={{ title: 'Add Attendance', presentation: 'modal' }}
+      />
+      <Stack.Screen
         name="payment/add"
         options={{ title: 'Add Payment', presentation: 'modal' }}
       />
