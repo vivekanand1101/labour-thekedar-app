@@ -16,7 +16,6 @@ export default function ProjectDetailScreen() {
   const [labours, setLabours] = useState<LabourWithStats[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-  const [fabOpen, setFabOpen] = useState(false);
 
   const loadData = async () => {
     const [projectData, laboursData] = await Promise.all([
@@ -137,24 +136,11 @@ export default function ProjectDetailScreen() {
         }
       />
 
-      <FAB.Group
-        open={fabOpen}
-        visible
-        icon={fabOpen ? 'close' : 'plus'}
-        actions={[
-          {
-            icon: 'account-plus',
-            label: t('addLabour'),
-            onPress: () => router.push(`/(main)/labour/add?projectId=${projectId}`),
-          },
-          {
-            icon: 'calendar-check',
-            label: t('markAttendance'),
-            onPress: () => router.push(`/(main)/attendance/mark?projectId=${projectId}`),
-          },
-        ]}
-        onStateChange={({ open }) => setFabOpen(open)}
-        fabStyle={styles.fab}
+      <FAB
+        icon="account-plus"
+        label={t('addLabour')}
+        onPress={() => router.push(`/(main)/labour/add?projectId=${projectId}`)}
+        style={styles.fab}
       />
 
       <Portal>
@@ -268,6 +254,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
     backgroundColor: theme.colors.primary,
   },
 });
