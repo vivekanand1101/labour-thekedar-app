@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, Button, Text, Surface } from 'react-native-paper';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { theme } from '../../src/utils/theme';
 import { getUserByPhone } from '../../src/db/database';
@@ -16,18 +16,17 @@ export default function VerifyScreen() {
   const pendingPhone = useAuthStore((state) => state.pendingPhone);
   const verifyOtp = useAuthStore((state) => state.verifyOtp);
 
-  const checkUserExists = async () => {
-    if (!pendingPhone) return;
-    const user = await getUserByPhone(pendingPhone);
-    setIsNewUser(!user);
-    if (user) {
-      setName(user.name);
-    }
-  };
-
-  useState(() => {
+  useEffect(() => {
+    const checkUserExists = async () => {
+      if (!pendingPhone) return;
+      const user = await getUserByPhone(pendingPhone);
+      setIsNewUser(!user);
+      if (user) {
+        setName(user.name);
+      }
+    };
     checkUserExists();
-  });
+  }, [pendingPhone]);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -55,8 +54,7 @@ export default function VerifyScreen() {
   };
 
   if (!pendingPhone) {
-    router.replace('/(auth)/phone');
-    return null;
+    return <Redirect href="/(auth)/phone" />;
   }
 
   return (
