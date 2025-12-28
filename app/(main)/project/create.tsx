@@ -5,18 +5,20 @@ import { router } from 'expo-router';
 import { useAuthStore } from '../../../src/store/authStore';
 import { createProject } from '../../../src/db/database';
 import { theme } from '../../../src/utils/theme';
+import { useI18n } from '../../../src/utils/i18n';
 
 export default function CreateProjectScreen() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useI18n();
 
   const user = useAuthStore((state) => state.user);
 
   const handleCreate = async () => {
     if (!name.trim()) {
-      setError('Please enter a project name');
+      setError(t('projectName'));
       return;
     }
 
@@ -42,11 +44,11 @@ export default function CreateProjectScreen() {
     >
       <View style={styles.content}>
         <Text variant="bodyMedium" style={styles.hint}>
-          Create a new project to organize your labourers
+          {t('createProjectHint')}
         </Text>
 
         <TextInput
-          label="Project Name"
+          label={t('projectName')}
           value={name}
           onChangeText={(text) => {
             setName(text);
@@ -57,7 +59,7 @@ export default function CreateProjectScreen() {
         />
 
         <TextInput
-          label="Description (optional)"
+          label={t('description')}
           value={description}
           onChangeText={setDescription}
           style={styles.input}
@@ -79,7 +81,7 @@ export default function CreateProjectScreen() {
           loading={isLoading}
           disabled={isLoading}
         >
-          Create Project
+          {t('createProject')}
         </Button>
       </View>
     </KeyboardAvoidingView>

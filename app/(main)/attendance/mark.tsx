@@ -4,6 +4,7 @@ import { Text, Button, Card, Checkbox, SegmentedButtons, IconButton } from 'reac
 import { router, useLocalSearchParams } from 'expo-router';
 import { getLaboursByProject, markAttendance, getAttendanceByDate } from '../../../src/db/database';
 import { theme, formatCurrency, getTodayDate, formatDate } from '../../../src/utils/theme';
+import { useI18n } from '../../../src/utils/i18n';
 import type { LabourWithStats, Attendance } from '../../../src/types';
 
 interface AttendanceItem {
@@ -15,6 +16,7 @@ interface AttendanceItem {
 export default function MarkAttendanceScreen() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const projId = parseInt(projectId || '0', 10);
+  const { t } = useI18n();
 
   const [date, setDate] = useState(getTodayDate());
   const [labours, setLabours] = useState<LabourWithStats[]>([]);
@@ -127,17 +129,17 @@ export default function MarkAttendanceScreen() {
 
       <View style={styles.header}>
         <Text variant="bodyMedium" style={styles.hint}>
-          Select labourers who worked on this date
+          {t('selectLabourers')}
         </Text>
         <Button mode="text" onPress={selectAll} compact>
-          Select All
+          {t('selectAll')}
         </Button>
       </View>
 
       <ScrollView style={styles.list}>
         {labours.length === 0 ? (
           <Text style={styles.emptyText}>
-            No labourers in this project yet
+            {t('noLabourersInProject')}
           </Text>
         ) : (
           labours.map((labour) => {
@@ -162,8 +164,8 @@ export default function MarkAttendanceScreen() {
                       value={item.workType}
                       onValueChange={(value) => setWorkType(labour.id, value as 'full' | 'half')}
                       buttons={[
-                        { value: 'full', label: 'Full' },
-                        { value: 'half', label: 'Half' },
+                        { value: 'full', label: t('fullDay') },
+                        { value: 'half', label: t('halfDay') },
                       ]}
                       style={styles.workTypeButtons}
                       density="small"
@@ -178,7 +180,7 @@ export default function MarkAttendanceScreen() {
 
       <View style={styles.footer}>
         <Text variant="bodyMedium" style={styles.selectedCount}>
-          {selectedCount} of {labours.length} selected
+          {selectedCount} {t('of')} {labours.length} {t('selected')}
         </Text>
         <Button
           mode="contained"
@@ -187,7 +189,7 @@ export default function MarkAttendanceScreen() {
           disabled={isLoading || !hasChanges}
           style={styles.saveButton}
         >
-          Save Attendance
+          {t('saveAttendance')}
         </Button>
       </View>
     </View>

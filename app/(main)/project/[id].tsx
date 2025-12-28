@@ -4,11 +4,13 @@ import { FAB, Card, Text, Chip, IconButton, Portal, Dialog, Button } from 'react
 import { router, useLocalSearchParams, useFocusEffect, Stack } from 'expo-router';
 import { getProjectById, getLaboursByProject, deleteProject } from '../../../src/db/database';
 import { theme, formatCurrency } from '../../../src/utils/theme';
+import { useI18n } from '../../../src/utils/i18n';
 import type { Project, LabourWithStats } from '../../../src/types';
 
 export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const projectId = parseInt(id || '0', 10);
+  const { t } = useI18n();
 
   const [project, setProject] = useState<Project | null>(null);
   const [labours, setLabours] = useState<LabourWithStats[]>([]);
@@ -66,18 +68,18 @@ export default function ProjectDetailScreen() {
             ]}
             textStyle={item.balance > 0 ? styles.pendingText : styles.clearedText}
           >
-            {item.balance > 0 ? `Due: ${formatCurrency(item.balance)}` : 'Cleared'}
+            {item.balance > 0 ? `${t('balanceDue')}: ${formatCurrency(item.balance)}` : t('cleared')}
           </Chip>
         </View>
         <View style={styles.labourStats}>
           <Text variant="bodySmall" style={styles.statText}>
-            {item.attendanceCount} days worked
+            {item.attendanceCount} {t('daysWorked')}
           </Text>
           <Text variant="bodySmall" style={styles.statText}>
-            Earned: {formatCurrency(item.totalEarned)}
+            {t('totalEarned')}: {formatCurrency(item.totalEarned)}
           </Text>
           <Text variant="bodySmall" style={styles.statText}>
-            Paid: {formatCurrency(item.totalPaid)}
+            {t('totalPaid')}: {formatCurrency(item.totalPaid)}
           </Text>
         </View>
       </Card.Content>
@@ -87,10 +89,10 @@ export default function ProjectDetailScreen() {
   const renderEmpty = () => (
     <View style={styles.empty}>
       <Text variant="headlineSmall" style={styles.emptyTitle}>
-        No labourers yet
+        {t('noLabourersYet')}
       </Text>
       <Text variant="bodyMedium" style={styles.emptySubtitle}>
-        Add labourers to start tracking their attendance and payments
+        {t('addLabourersHint')}
       </Text>
     </View>
   );
@@ -104,11 +106,11 @@ export default function ProjectDetailScreen() {
       {project && (
         <View style={styles.summary}>
           <View style={styles.summaryItem}>
-            <Text variant="labelSmall" style={styles.summaryLabel}>Labourers</Text>
+            <Text variant="labelSmall" style={styles.summaryLabel}>{t('labourers')}</Text>
             <Text variant="headlineSmall" style={styles.summaryValue}>{labours.length}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text variant="labelSmall" style={styles.summaryLabel}>Total Pending</Text>
+            <Text variant="labelSmall" style={styles.summaryLabel}>{t('pendingDues')}</Text>
             <Text
               variant="headlineSmall"
               style={[styles.summaryValue, totalPending > 0 ? styles.pending : styles.cleared]}
@@ -142,12 +144,12 @@ export default function ProjectDetailScreen() {
         actions={[
           {
             icon: 'account-plus',
-            label: 'Add Labour',
+            label: t('addLabour'),
             onPress: () => router.push(`/(main)/labour/add?projectId=${projectId}`),
           },
           {
             icon: 'calendar-check',
-            label: 'Mark Attendance',
+            label: t('markAttendance'),
             onPress: () => router.push(`/(main)/attendance/mark?projectId=${projectId}`),
           },
         ]}
@@ -157,15 +159,15 @@ export default function ProjectDetailScreen() {
 
       <Portal>
         <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
-          <Dialog.Title>Delete Project</Dialog.Title>
+          <Dialog.Title>{t('deleteProject')}</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyMedium">
-              Are you sure you want to delete this project? This will also delete all labourers, attendance records, and payments.
+              {t('deleteProjectConfirm')}
             </Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
-            <Button onPress={handleDelete} textColor={theme.colors.error}>Delete</Button>
+            <Button onPress={() => setDeleteDialogVisible(false)}>{t('cancel')}</Button>
+            <Button onPress={handleDelete} textColor={theme.colors.error}>{t('delete')}</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>

@@ -4,10 +4,12 @@ import { TextInput, Button, Text } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { createLabour } from '../../../src/db/database';
 import { theme } from '../../../src/utils/theme';
+import { useI18n } from '../../../src/utils/i18n';
 
 export default function AddLabourScreen() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const projId = parseInt(projectId || '0', 10);
+  const { t } = useI18n();
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -17,13 +19,13 @@ export default function AddLabourScreen() {
 
   const handleAdd = async () => {
     if (!name.trim()) {
-      setError('Please enter the labour name');
+      setError(t('labourName'));
       return;
     }
 
     const wage = parseFloat(dailyWage) || 0;
     if (wage <= 0) {
-      setError('Please enter a valid daily wage');
+      setError(t('dailyWage'));
       return;
     }
 
@@ -52,11 +54,11 @@ export default function AddLabourScreen() {
     >
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
         <Text variant="bodyMedium" style={styles.hint}>
-          Add a new labourer to this project
+          {t('addLabourHint')}
         </Text>
 
         <TextInput
-          label="Name"
+          label={t('labourName')}
           value={name}
           onChangeText={(text) => {
             setName(text);
@@ -67,7 +69,7 @@ export default function AddLabourScreen() {
         />
 
         <TextInput
-          label="Phone (optional)"
+          label={t('phone')}
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"
@@ -77,7 +79,7 @@ export default function AddLabourScreen() {
         />
 
         <TextInput
-          label="Daily Wage"
+          label={t('dailyWage')}
           value={dailyWage}
           onChangeText={(text) => {
             setDailyWage(text.replace(/[^0-9.]/g, ''));
@@ -103,7 +105,7 @@ export default function AddLabourScreen() {
           loading={isLoading}
           disabled={isLoading}
         >
-          Add Labour
+          {t('addLabour')}
         </Button>
       </ScrollView>
     </KeyboardAvoidingView>

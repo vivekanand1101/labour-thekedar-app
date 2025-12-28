@@ -5,6 +5,7 @@ import { router, Redirect } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { theme } from '../../src/utils/theme';
 import { getUserByPhone } from '../../src/db/database';
+import { useI18n } from '../../src/utils/i18n';
 
 export default function VerifyScreen() {
   const [otp, setOtp] = useState('');
@@ -12,6 +13,7 @@ export default function VerifyScreen() {
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useI18n();
 
   const pendingPhone = useAuthStore((state) => state.pendingPhone);
   const verifyOtp = useAuthStore((state) => state.verifyOtp);
@@ -30,12 +32,12 @@ export default function VerifyScreen() {
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
-      setError('Please enter a 6-digit OTP');
+      setError(t('enter6DigitOtp'));
       return;
     }
 
     if (isNewUser && !name.trim()) {
-      setError('Please enter your name');
+      setError(t('enterName'));
       return;
     }
 
@@ -47,7 +49,7 @@ export default function VerifyScreen() {
     if (success) {
       router.replace('/(main)');
     } else {
-      setError('Invalid OTP. Please try again.');
+      setError(t('invalidOtp'));
     }
 
     setIsLoading(false);
@@ -65,15 +67,15 @@ export default function VerifyScreen() {
       <View style={styles.content}>
         <Surface style={styles.form} elevation={1}>
           <Text variant="titleMedium" style={styles.formTitle}>
-            Verify your phone
+            {t('verifyPhone')}
           </Text>
 
           <Text variant="bodyMedium" style={styles.phoneText}>
-            OTP sent to +91 {pendingPhone}
+            {t('otpSentTo')} +91 {pendingPhone}
           </Text>
 
           <TextInput
-            label="Enter OTP"
+            label={t('enterOtp')}
             value={otp}
             onChangeText={(text) => {
               setOtp(text.replace(/\D/g, ''));
@@ -87,7 +89,7 @@ export default function VerifyScreen() {
 
           {isNewUser && (
             <TextInput
-              label="Your Name"
+              label={t('yourName')}
               value={name}
               onChangeText={(text) => {
                 setName(text);
@@ -112,11 +114,11 @@ export default function VerifyScreen() {
             loading={isLoading}
             disabled={isLoading}
           >
-            Verify & Continue
+            {t('verifyAndContinue')}
           </Button>
 
           <Text variant="bodySmall" style={styles.hint}>
-            For demo, enter any 6-digit code
+            {t('demoHint')}
           </Text>
         </Surface>
       </View>

@@ -4,11 +4,13 @@ import { Text, Button, Card, SegmentedButtons, IconButton } from 'react-native-p
 import { router, useLocalSearchParams } from 'expo-router';
 import { getLabourById, markAttendance, getAttendanceByLabour } from '../../../src/db/database';
 import { theme, formatCurrency, getTodayDate, formatDate } from '../../../src/utils/theme';
+import { useI18n } from '../../../src/utils/i18n';
 import type { LabourWithStats, Attendance } from '../../../src/types';
 
 export default function AddAttendanceScreen() {
   const { labourId } = useLocalSearchParams<{ labourId: string }>();
   const labId = parseInt(labourId || '0', 10);
+  const { t } = useI18n();
 
   const [labour, setLabour] = useState<LabourWithStats | null>(null);
   const [date, setDate] = useState(getTodayDate());
@@ -50,7 +52,7 @@ export default function AddAttendanceScreen() {
   if (!labour) {
     return (
       <View style={styles.loading}>
-        <Text>Loading...</Text>
+        <Text>{t('loading')}</Text>
       </View>
     );
   }
@@ -72,7 +74,7 @@ export default function AddAttendanceScreen() {
         </Card>
 
         <Text variant="labelLarge" style={styles.sectionLabel}>
-          Date
+          {t('date')}
         </Text>
         <View style={styles.dateSelector}>
           <IconButton icon="chevron-left" onPress={() => changeDate(-1)} />
@@ -90,22 +92,21 @@ export default function AddAttendanceScreen() {
           <Card style={styles.existingCard}>
             <Card.Content>
               <Text variant="bodyMedium" style={styles.existingText}>
-                Attendance already marked for this date as {existingAttendance.workType === 'full' ? 'Full Day' : 'Half Day'}.
-                Saving will update it.
+                {t('attendanceExists')}
               </Text>
             </Card.Content>
           </Card>
         )}
 
         <Text variant="labelLarge" style={styles.sectionLabel}>
-          Work Type
+          {t('workType')}
         </Text>
         <SegmentedButtons
           value={workType}
           onValueChange={(value) => setWorkType(value as 'full' | 'half')}
           buttons={[
-            { value: 'full', label: 'Full Day', icon: 'weather-sunny' },
-            { value: 'half', label: 'Half Day', icon: 'weather-partly-cloudy' },
+            { value: 'full', label: t('fullDay'), icon: 'weather-sunny' },
+            { value: 'half', label: t('halfDay'), icon: 'weather-partly-cloudy' },
           ]}
           style={styles.workTypeButtons}
         />
@@ -113,7 +114,7 @@ export default function AddAttendanceScreen() {
         <Card style={styles.summaryCard}>
           <Card.Content>
             <View style={styles.summaryRow}>
-              <Text variant="bodyMedium" style={styles.summaryLabel}>Amount to be earned:</Text>
+              <Text variant="bodyMedium" style={styles.summaryLabel}>{t('amountEarned')}:</Text>
               <Text variant="titleLarge" style={styles.summaryAmount}>
                 {formatCurrency(amount)}
               </Text>
@@ -129,7 +130,7 @@ export default function AddAttendanceScreen() {
           loading={isLoading}
           disabled={isLoading}
         >
-          {existingAttendance ? 'Update Attendance' : 'Mark Attendance'}
+          {existingAttendance ? t('updateAttendance') : t('markAttendance')}
         </Button>
       </ScrollView>
     </View>

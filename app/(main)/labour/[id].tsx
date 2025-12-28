@@ -12,6 +12,7 @@ import {
   deletePayment,
 } from '../../../src/db/database';
 import { theme, formatCurrency, formatDate } from '../../../src/utils/theme';
+import { useI18n } from '../../../src/utils/i18n';
 import type { LabourWithStats, Attendance, Payment } from '../../../src/types';
 
 type Event =
@@ -21,6 +22,7 @@ type Event =
 export default function LabourDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const labourId = parseInt(id || '0', 10);
+  const { t } = useI18n();
 
   const [labour, setLabour] = useState<LabourWithStats | null>(null);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
@@ -39,10 +41,8 @@ export default function LabourDetailScreen() {
       ...payments.map((p) => ({ type: 'payment' as const, data: p, date: p.date })),
     ];
     return allEvents.sort((a, b) => {
-      // Sort by date descending first
       const dateCompare = new Date(b.date).getTime() - new Date(a.date).getTime();
       if (dateCompare !== 0) return dateCompare;
-      // For same date, show attendance before payment
       if (a.type === 'attendance' && b.type === 'payment') return -1;
       if (a.type === 'payment' && b.type === 'attendance') return 1;
       return 0;
@@ -104,7 +104,7 @@ export default function LabourDetailScreen() {
   if (!labour) {
     return (
       <View style={styles.loading}>
-        <Text>Loading...</Text>
+        <Text>{t('loading')}</Text>
       </View>
     );
   }
@@ -131,7 +131,7 @@ export default function LabourDetailScreen() {
                   </Text>
                 )}
                 <Text variant="bodyMedium" style={styles.wage}>
-                  {formatCurrency(labour.dailyWage)} / day
+                  {formatCurrency(labour.dailyWage)} {t('perDay')}
                 </Text>
               </View>
               <View style={styles.actions}>
@@ -148,22 +148,22 @@ export default function LabourDetailScreen() {
 
             <View style={styles.stats}>
               <View style={styles.statItem}>
-                <Text variant="labelSmall" style={styles.statLabel}>Days Worked</Text>
+                <Text variant="labelSmall" style={styles.statLabel}>{t('daysWorked')}</Text>
                 <Text variant="titleLarge" style={styles.statValue}>{labour.attendanceCount}</Text>
               </View>
               <View style={styles.statItem}>
-                <Text variant="labelSmall" style={styles.statLabel}>Total Earned</Text>
+                <Text variant="labelSmall" style={styles.statLabel}>{t('totalEarned')}</Text>
                 <Text variant="titleLarge" style={styles.statValue}>{formatCurrency(labour.totalEarned)}</Text>
               </View>
               <View style={styles.statItem}>
-                <Text variant="labelSmall" style={styles.statLabel}>Total Paid</Text>
+                <Text variant="labelSmall" style={styles.statLabel}>{t('totalPaid')}</Text>
                 <Text variant="titleLarge" style={styles.statValue}>{formatCurrency(labour.totalPaid)}</Text>
               </View>
             </View>
 
             <View style={styles.balanceContainer}>
               <Text variant="labelMedium" style={styles.balanceLabel}>
-                {labour.balance > 0 ? 'Balance Due' : 'Balance'}
+                {labour.balance > 0 ? t('balanceDue') : t('balance')}
               </Text>
               <Chip
                 mode="flat"
@@ -177,7 +177,7 @@ export default function LabourDetailScreen() {
                 ]}
               >
                 {formatCurrency(Math.abs(labour.balance))}
-                {labour.balance < 0 ? ' (Overpaid)' : ''}
+                {labour.balance < 0 ? ` (${t('overpaid')})` : ''}
               </Chip>
             </View>
           </Card.Content>
@@ -191,7 +191,7 @@ export default function LabourDetailScreen() {
             style={styles.actionButton}
             buttonColor={theme.colors.primary}
           >
-            Add Attendance
+            {t('addAttendance')}
           </Button>
           <Button
             mode="contained"
@@ -200,20 +200,20 @@ export default function LabourDetailScreen() {
             style={styles.actionButton}
             buttonColor={theme.colors.tertiary}
           >
-            Add Payment
+            {t('addPayment')}
           </Button>
         </View>
 
         <View style={styles.eventsHeader}>
-          <Text variant="titleMedium" style={styles.eventsTitle}>Events</Text>
+          <Text variant="titleMedium" style={styles.eventsTitle}>{t('events')}</Text>
           <Text variant="bodySmall" style={styles.eventsCount}>
-            {events.length} records
+            {events.length} {t('records')}
           </Text>
         </View>
 
         <View style={styles.section}>
           {events.length === 0 ? (
-            <Text style={styles.emptyText}>No events yet</Text>
+            <Text style={styles.emptyText}>{t('noEventsYet')}</Text>
           ) : (
             events.map((event) => {
               if (event.type === 'attendance') {
@@ -231,7 +231,7 @@ export default function LabourDetailScreen() {
                           compact
                           style={item.workType === 'full' ? styles.fullChip : styles.halfChip}
                         >
-                          {item.workType === 'full' ? 'Full Day' : 'Half Day'}
+                          {item.workType === 'full' ? t('fullDay') : t('halfDay')}
                         </Chip>
                       </View>
                       <Text variant="bodyMedium" style={styles.attendanceAmount}>
@@ -256,7 +256,7 @@ export default function LabourDetailScreen() {
                       <View style={styles.recordInfo}>
                         <Text variant="titleMedium">{formatDate(item.date)}</Text>
                         <Chip mode="flat" compact style={styles.paymentChip}>
-                          Payment
+                          {t('payment')}
                         </Chip>
                       </View>
                       <Text variant="titleMedium" style={styles.paymentAmount}>
@@ -278,23 +278,23 @@ export default function LabourDetailScreen() {
 
       <Portal>
         <Dialog visible={editDialogVisible} onDismiss={() => setEditDialogVisible(false)}>
-          <Dialog.Title>Edit Labour</Dialog.Title>
+          <Dialog.Title>{t('editLabour')}</Dialog.Title>
           <Dialog.Content>
             <TextInput
-              label="Name"
+              label={t('labourName')}
               value={editName}
               onChangeText={setEditName}
               style={styles.dialogInput}
             />
             <TextInput
-              label="Phone"
+              label={t('phone')}
               value={editPhone}
               onChangeText={setEditPhone}
               keyboardType="phone-pad"
               style={styles.dialogInput}
             />
             <TextInput
-              label="Daily Wage"
+              label={t('dailyWage')}
               value={editWage}
               onChangeText={setEditWage}
               keyboardType="numeric"
@@ -303,21 +303,21 @@ export default function LabourDetailScreen() {
             />
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setEditDialogVisible(false)}>Cancel</Button>
-            <Button onPress={handleEdit}>Save</Button>
+            <Button onPress={() => setEditDialogVisible(false)}>{t('cancel')}</Button>
+            <Button onPress={handleEdit}>{t('save')}</Button>
           </Dialog.Actions>
         </Dialog>
 
         <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
-          <Dialog.Title>Delete Labour</Dialog.Title>
+          <Dialog.Title>{t('deleteLabour')}</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyMedium">
-              Are you sure you want to delete {labour.name}? This will also delete all their attendance and payment records.
+              {t('deleteLabourConfirm')}
             </Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
-            <Button onPress={handleDelete} textColor={theme.colors.error}>Delete</Button>
+            <Button onPress={() => setDeleteDialogVisible(false)}>{t('cancel')}</Button>
+            <Button onPress={handleDelete} textColor={theme.colors.error}>{t('delete')}</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>

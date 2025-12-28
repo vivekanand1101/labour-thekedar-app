@@ -5,12 +5,14 @@ import { router, useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { getProjectsByUser } from '../../src/db/database';
 import { theme, formatCurrency } from '../../src/utils/theme';
+import { useI18n } from '../../src/utils/i18n';
 import type { ProjectWithStats } from '../../src/types';
 
 export default function ProjectsScreen() {
   const [projects, setProjects] = useState<ProjectWithStats[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const { t } = useI18n();
 
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -55,11 +57,11 @@ export default function ProjectsScreen() {
         ) : null}
         <View style={styles.stats}>
           <View style={styles.stat}>
-            <Text variant="labelSmall" style={styles.statLabel}>Labourers</Text>
+            <Text variant="labelSmall" style={styles.statLabel}>{t('labourers')}</Text>
             <Text variant="titleMedium" style={styles.statValue}>{item.labourCount}</Text>
           </View>
           <View style={styles.stat}>
-            <Text variant="labelSmall" style={styles.statLabel}>Pending Dues</Text>
+            <Text variant="labelSmall" style={styles.statLabel}>{t('pendingDues')}</Text>
             <Text
               variant="titleMedium"
               style={[
@@ -78,10 +80,10 @@ export default function ProjectsScreen() {
   const renderEmpty = () => (
     <View style={styles.empty}>
       <Text variant="headlineSmall" style={styles.emptyTitle}>
-        No projects yet
+        {t('noProjectsYet')}
       </Text>
       <Text variant="bodyMedium" style={styles.emptySubtitle}>
-        Create your first project to start tracking labour attendance and payments
+        {t('createFirstProject')}
       </Text>
     </View>
   );
@@ -90,7 +92,7 @@ export default function ProjectsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text variant="bodyMedium" style={styles.welcome}>
-          Welcome, {user?.name}
+          {t('welcome')}, {user?.name}
         </Text>
         <Menu
           visible={menuVisible}
@@ -102,7 +104,7 @@ export default function ProjectsScreen() {
             />
           }
         >
-          <Menu.Item onPress={handleLogout} title="Logout" leadingIcon="logout" />
+          <Menu.Item onPress={handleLogout} title={t('logout')} leadingIcon="logout" />
         </Menu>
       </View>
 

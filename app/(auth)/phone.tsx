@@ -4,17 +4,19 @@ import { TextInput, Button, Text, Surface } from 'react-native-paper';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { theme } from '../../src/utils/theme';
+import { useI18n } from '../../src/utils/i18n';
 
 export default function PhoneScreen() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const setPendingPhone = useAuthStore((state) => state.setPendingPhone);
+  const { t } = useI18n();
 
   const handleContinue = () => {
     const cleanPhone = phone.replace(/\D/g, '');
 
     if (cleanPhone.length !== 10) {
-      setError('Please enter a valid 10-digit phone number');
+      setError(t('validPhone'));
       return;
     }
 
@@ -30,20 +32,20 @@ export default function PhoneScreen() {
       <View style={styles.content}>
         <Surface style={styles.header} elevation={0}>
           <Text variant="displaySmall" style={styles.title}>
-            Labour Thekedar
+            {t('appName')}
           </Text>
           <Text variant="bodyLarge" style={styles.subtitle}>
-            Manage your labour attendance and payments
+            {t('appTagline')}
           </Text>
         </Surface>
 
         <Surface style={styles.form} elevation={1}>
           <Text variant="titleMedium" style={styles.formTitle}>
-            Enter your phone number
+            {t('enterPhone')}
           </Text>
 
           <TextInput
-            label="Phone Number"
+            label={t('phoneNumber')}
             value={phone}
             onChangeText={(text) => {
               setPhone(text);
@@ -68,11 +70,11 @@ export default function PhoneScreen() {
             style={styles.button}
             contentStyle={styles.buttonContent}
           >
-            Continue
+            {t('continue')}
           </Button>
 
           <Text variant="bodySmall" style={styles.hint}>
-            We'll send you an OTP to verify your number
+            {t('otpHint')}
           </Text>
         </Surface>
       </View>

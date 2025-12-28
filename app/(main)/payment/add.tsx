@@ -4,11 +4,13 @@ import { TextInput, Button, Text, Card, IconButton } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { getLabourById, addPayment } from '../../../src/db/database';
 import { theme, formatCurrency, getTodayDate, formatDate } from '../../../src/utils/theme';
+import { useI18n } from '../../../src/utils/i18n';
 import type { LabourWithStats } from '../../../src/types';
 
 export default function AddPaymentScreen() {
   const { labourId } = useLocalSearchParams<{ labourId: string }>();
   const labId = parseInt(labourId || '0', 10);
+  const { t } = useI18n();
 
   const [labour, setLabour] = useState<LabourWithStats | null>(null);
   const [amount, setAmount] = useState('');
@@ -24,9 +26,6 @@ export default function AddPaymentScreen() {
   const loadLabour = async () => {
     const data = await getLabourById(labId);
     setLabour(data);
-    if (data && data.balance > 0) {
-      setAmount(data.balance.toString());
-    }
   };
 
   const changeDate = (days: number) => {
@@ -38,7 +37,7 @@ export default function AddPaymentScreen() {
   const handleAdd = async () => {
     const amountNum = parseFloat(amount);
     if (!amountNum || amountNum <= 0) {
-      setError('Please enter a valid amount');
+      setError(t('validAmount'));
       return;
     }
 
@@ -49,22 +48,16 @@ export default function AddPaymentScreen() {
       await addPayment(labId, amountNum, date, 'payment', notes.trim() || undefined);
       router.back();
     } catch (e) {
-      setError('Failed to add payment. Please try again.');
+      setError(t('paymentFailed'));
     }
 
     setIsLoading(false);
   };
 
-  const setFullBalance = () => {
-    if (labour && labour.balance > 0) {
-      setAmount(labour.balance.toString());
-    }
-  };
-
   if (!labour) {
     return (
       <View style={styles.loading}>
-        <Text>Loading...</Text>
+        <Text>{t('loading')}</Text>
       </View>
     );
   }
@@ -82,7 +75,7 @@ export default function AddPaymentScreen() {
             </Text>
             <View style={styles.balanceRow}>
               <Text variant="bodyMedium" style={styles.balanceLabel}>
-                Current Balance:
+                {t('currentBalance')}:
               </Text>
               <Text
                 variant="titleMedium"
@@ -98,7 +91,7 @@ export default function AddPaymentScreen() {
         </Card>
 
         <Text variant="labelLarge" style={styles.sectionLabel}>
-          Date
+          {t('date')}
         </Text>
         <View style={styles.dateSelector}>
           <IconButton icon="chevron-left" onPress={() => changeDate(-1)} />
@@ -113,29 +106,23 @@ export default function AddPaymentScreen() {
         </View>
 
         <Text variant="labelLarge" style={styles.sectionLabel}>
-          Amount
+          {t('amount')}
         </Text>
-        <View style={styles.amountRow}>
-          <TextInput
-            value={amount}
-            onChangeText={(text) => {
-              setAmount(text.replace(/[^0-9.]/g, ''));
-              setError('');
-            }}
-            keyboardType="numeric"
-            left={<TextInput.Affix text="₹" />}
-            style={styles.amountInput}
-            error={!!error}
-          />
-          {labour.balance > 0 && (
-            <Button mode="outlined" onPress={setFullBalance} style={styles.fullButton}>
-              Full ({formatCurrency(labour.balance)})
-            </Button>
-          )}
-        </View>
+        <TextInput
+          value={amount}
+          onChangeText={(text) => {
+            setAmount(text.replace(/[^0-9]/g, ''));
+            setError('');
+          }}
+          keyboardType="numeric"
+          placeholder={t('amountPlaceholder')}
+          left={<TextInput.Affix text="₹" />}
+          style={styles.input}
+          error={!!error}
+        />
 
         <TextInput
-          label="Notes (optional)"
+          label={t('notes')}
           value={notes}
           onChangeText={setNotes}
           style={styles.input}
@@ -156,7 +143,7 @@ export default function AddPaymentScreen() {
           loading={isLoading}
           disabled={isLoading}
         >
-          Add Payment
+          {t('addPayment')}
         </Button>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -217,18 +204,6 @@ const styles = StyleSheet.create({
   dateText: {
     minWidth: 120,
     textAlign: 'center',
-  },
-  amountRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  amountInput: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  fullButton: {
-    justifyContent: 'center',
   },
   input: {
     marginBottom: 16,

@@ -270,7 +270,7 @@ export async function getAttendanceByDate(projectId: number, date: string): Prom
 }
 
 // Payment operations
-export async function addPayment(labourId: number, amount: number, date: string, type: 'advance' | 'settlement', notes?: string): Promise<Payment> {
+export async function addPayment(labourId: number, amount: number, date: string, type: string, notes?: string): Promise<Payment> {
   const database = await getDatabase();
   const result = await database.runAsync(
     'INSERT INTO payments (labourId, amount, date, type, notes) VALUES (?, ?, ?, ?, ?)',
