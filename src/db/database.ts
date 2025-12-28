@@ -114,7 +114,11 @@ export async function getProjectsByUser(userId: number): Promise<ProjectWithStat
       COUNT(DISTINCT l.id) as labourCount,
       COALESCE(SUM(
         (SELECT COALESCE(SUM(
-          CASE WHEN a.workType = 'full' THEN l2.dailyWage ELSE l2.dailyWage / 2 END
+          CASE
+            WHEN a.workType = 'full' THEN l2.dailyWage
+            WHEN a.workType = 'half' THEN l2.dailyWage / 2
+            ELSE 0
+          END
         ), 0) FROM attendance a
         JOIN labours l2 ON a.labourId = l2.id
         WHERE l2.id = l.id)
@@ -174,10 +178,17 @@ export async function getLaboursByProject(projectId: number): Promise<LabourWith
   return await database.getAllAsync<LabourWithStats>(`
     SELECT
       l.*,
-      COALESCE(SUM(CASE WHEN a.workType = 'full' THEN l.dailyWage ELSE l.dailyWage / 2 END), 0) as totalEarned,
+      COALESCE(SUM(CASE
+        WHEN a.workType = 'full' THEN l.dailyWage
+        WHEN a.workType = 'half' THEN l.dailyWage / 2
+        ELSE 0
+      END), 0) as totalEarned,
       COALESCE((SELECT SUM(amount) FROM payments WHERE labourId = l.id), 0) as totalPaid,
-      COALESCE(SUM(CASE WHEN a.workType = 'full' THEN l.dailyWage ELSE l.dailyWage / 2 END), 0)
-        - COALESCE((SELECT SUM(amount) FROM payments WHERE labourId = l.id), 0) as balance,
+      COALESCE(SUM(CASE
+        WHEN a.workType = 'full' THEN l.dailyWage
+        WHEN a.workType = 'half' THEN l.dailyWage / 2
+        ELSE 0
+      END), 0) - COALESCE((SELECT SUM(amount) FROM payments WHERE labourId = l.id), 0) as balance,
       COUNT(a.id) as attendanceCount
     FROM labours l
     LEFT JOIN attendance a ON a.labourId = l.id
@@ -192,10 +203,17 @@ export async function getLabourById(id: number): Promise<LabourWithStats | null>
   return await database.getFirstAsync<LabourWithStats>(`
     SELECT
       l.*,
-      COALESCE(SUM(CASE WHEN a.workType = 'full' THEN l.dailyWage ELSE l.dailyWage / 2 END), 0) as totalEarned,
+      COALESCE(SUM(CASE
+        WHEN a.workType = 'full' THEN l.dailyWage
+        WHEN a.workType = 'half' THEN l.dailyWage / 2
+        ELSE 0
+      END), 0) as totalEarned,
       COALESCE((SELECT SUM(amount) FROM payments WHERE labourId = l.id), 0) as totalPaid,
-      COALESCE(SUM(CASE WHEN a.workType = 'full' THEN l.dailyWage ELSE l.dailyWage / 2 END), 0)
-        - COALESCE((SELECT SUM(amount) FROM payments WHERE labourId = l.id), 0) as balance,
+      COALESCE(SUM(CASE
+        WHEN a.workType = 'full' THEN l.dailyWage
+        WHEN a.workType = 'half' THEN l.dailyWage / 2
+        ELSE 0
+      END), 0) - COALESCE((SELECT SUM(amount) FROM payments WHERE labourId = l.id), 0) as balance,
       COUNT(a.id) as attendanceCount
     FROM labours l
     LEFT JOIN attendance a ON a.labourId = l.id
